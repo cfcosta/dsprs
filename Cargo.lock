@@ -366,6 +366,7 @@ dependencies = [
  "async-trait",
  "dsp_macros",
  "ollama-rs",
+ "serde",
  "tera",
  "thiserror",
  "tokio",

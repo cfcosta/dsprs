@@ -1,10 +1,10 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
-use quote::quote;
-use syn::{parse_macro_input, parse_quote, Data, DeriveInput, Expr, ExprPath, Fields};
 
-use syn::parse::{Parse, ParseStream};
+use quote::quote;
+use syn::{parse_macro_input, Data, DeriveInput, Fields};
+
+
 
 #[proc_macro_derive(Signature, attributes(signature, input, output))]
 pub fn signature_derive(input: TokenStream) -> TokenStream {

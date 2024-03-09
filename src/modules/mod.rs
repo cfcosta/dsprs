@@ -1,8 +1,16 @@
-use crate::{Context, Error, Signature};
 use async_trait::async_trait;
 
+use crate::{Context, Error, Signature};
+
 mod chain;
-pub use chain::Chain;
+mod chain_of_thought;
+mod predict;
+
+pub use self::{
+    chain::Chain,
+    chain_of_thought::{chain_of_thought, ChainOfThought},
+    predict::{predict, Predict},
+};
 
 #[async_trait]
 pub trait Module {
@@ -20,16 +28,4 @@ impl<S: Signature> Prediction<S> {
     pub fn new(signature: S) -> Self {
         Self { signature }
     }
-}
-
-pub struct Predict;
-
-pub fn predict<S: Signature>(_signature: S) -> Prediction<S> {
-    todo!()
-}
-
-pub struct ChainOfThought;
-
-pub fn chain_of_thought<S: Signature>(_signature: S) -> Prediction<S> {
-    todo!()
 }
