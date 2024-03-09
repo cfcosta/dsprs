@@ -8,16 +8,7 @@ use ollama_rs::{
 
 use crate::Error;
 
-#[derive(Debug)]
-pub struct Completion;
-
-#[async_trait]
-pub trait LanguageModel
-where
-    Self: Debug,
-{
-    async fn complete(&self, prompt: &str) -> Result<Completion, Error>;
-}
+use super::{Completion, LanguageModel};
 
 #[derive(Debug)]
 pub struct Ollama {
