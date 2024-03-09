@@ -55,18 +55,43 @@ impl LLM {
 
 #[macro_export]
 macro_rules! chain {
-    ( $( $module:ident $( ( $( $arg:expr ),* ) )? -> )* ) => {
-        {
-            $(
-                let _ = $module::new( $( $( $arg ),* )? );
-            )*
-        }
-    };
+    ( $( $module:ident )+ ) => {{
+        ()
+    }};
+    ( $( $module:ident )+ $( -> $module_tail:ident )+ ) => {{
+        chain!($( $module )+);
+    }};
 }
 
 #[macro_export]
 macro_rules! request {
-    ($context:expr, $module:ident) => {{
-        todo!()
-    }};
+    ($context:expr, $module:ident) => {
+        async {
+            use ollama_rs::{
+                generation::{completion::request::GenerationRequest, options::GenerationOptions},
+                Ollama,
+            };
+
+            let model = "gemma:2b".to_string();
+            let prompt = "What is love?".to_string();
+
+            let options = GenerationOptions::default()
+                .temperature(0.2)
+                .repeat_penalty(1.5)
+                .top_k(25)
+                .top_p(0.25);
+
+            let ollama = Ollama::default();
+
+            let res = ollama
+                .generate(GenerationRequest::new(model, prompt).options(options))
+                .await;
+
+            if let Ok(ref res) = res {
+                println!("{}", res.response);
+            }
+
+            Ok(res.map_err(|_| dsp::Error::LLMError))
+        }
+    };
 }

@@ -31,7 +31,5 @@ async fn main() -> Result<(), Error> {
 
     let result = request!(&context, qa).await?;
 
-    println!("Answer: {}", result.answer);
-
     Ok(())
 }
