@@ -1,56 +1,15 @@
-use std::sync::Arc;
-
-use thiserror::Error as ThisError;
-
 pub use dsp_macros::Signature;
 
-pub mod modules;
+mod context;
+mod error;
+mod llm;
+mod modules;
 
-pub use modules::Module;
-
-#[derive(Debug, Clone, ThisError)]
-pub enum Error {
-    #[error("TODO: Add message here")]
-    LLMError,
-}
+pub use self::{context::Context, error::Error, llm::LLM, modules::Module};
 
 pub trait Signature {
     type Inputs;
     type Outputs;
-}
-
-#[derive(Debug, Clone)]
-pub struct Context {
-    pub depth: u8,
-    pub llm: Arc<LLM>,
-}
-
-impl Default for Context {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Context {
-    pub fn new() -> Context {
-        Context {
-            depth: 0,
-            llm: Arc::new(LLM::OpenAI),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum LLM {
-    OpenAI,
-}
-
-pub struct LLMOptions;
-
-impl LLM {
-    pub fn gpt_4_turbo(_options: LLMOptions) -> LLM {
-        todo!()
-    }
 }
 
 #[macro_export]
@@ -92,7 +51,7 @@ macro_rules! request {
             let model = "gemma:2b".to_string();
 
             let options = GenerationOptions::default()
-                .temperature(0.2)
+                .temperature(1.0)
                 .repeat_penalty(1.5)
                 .top_k(25)
                 .top_p(0.25);
