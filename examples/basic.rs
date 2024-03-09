@@ -25,11 +25,11 @@ pub struct SummarizeAnswer {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let qa = chain!(AnswerQuestion -> SummarizeAnswer);
-    let context = Context::new();
-    let question = "What is the meaning of life?".to_string();
+    chain!(AnswerQuestion -> SummarizeAnswer);
+    let _context = Context::new();
+    let result = request!(&context, qa, { question => "baby don't hurt me" }).await?;
 
-    let result = request!(&context, qa).await?;
+    println!("{:?}", result);
 
     Ok(())
 }

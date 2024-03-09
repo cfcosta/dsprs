@@ -1,9 +1,15 @@
-use crate::Signature;
+use crate::{Context, Error, Signature};
 use async_trait::async_trait;
+
+mod chain;
+pub use chain::Chain;
 
 #[async_trait]
 pub trait Module {
-    type Signature: Signature;
+    type From: Signature + Send + Sync;
+    type To: Signature + Send + Sync;
+
+    async fn forward(context: Context, input: Self::From) -> Result<Self::To, Error>;
 }
 
 pub struct Prediction<S: Signature> {

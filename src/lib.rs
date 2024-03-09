@@ -55,25 +55,41 @@ impl LLM {
 
 #[macro_export]
 macro_rules! chain {
-    ( $( $module:ident )+ ) => {{
-        ()
-    }};
-    ( $( $module:ident )+ $( -> $module_tail:ident )+ ) => {{
-        chain!($( $module )+);
+    ( $( $from:ident -> $to:expr ),* $(,)?) => {{
+        println!("Creating chain from {} to {}", stringify!($($from)*), stringify!($($to)*));
     }};
 }
 
 #[macro_export]
+macro_rules! params {
+    ( $( $key:ident => $value:expr ),* $(,)? ) => {{
+        let mut params = ::std::collections::HashMap::new();
+        $(
+            params.insert(stringify!($key), $value);
+        )*
+        params
+    }}
+}
+
+#[macro_export]
 macro_rules! request {
-    ($context:expr, $module:ident) => {
+    ($context:expr, $module:ident, { $($key:ident => $value:expr),* $(,)? }) => {
         async {
             use ollama_rs::{
                 generation::{completion::request::GenerationRequest, options::GenerationOptions},
                 Ollama,
             };
 
+
+            let mut params = ::dsp::params!($($key => $value)*);
+            let prompt = params
+                .iter()
+                .map(|(k, v)| format!("{}: {}", k, v))
+                .collect::<Vec<String>>().join(", ");
+
+            println!("{}", prompt);
+
             let model = "gemma:2b".to_string();
-            let prompt = "What is love?".to_string();
 
             let options = GenerationOptions::default()
                 .temperature(0.2)
@@ -86,10 +102,6 @@ macro_rules! request {
             let res = ollama
                 .generate(GenerationRequest::new(model, prompt).options(options))
                 .await;
-
-            if let Ok(ref res) = res {
-                println!("{}", res.response);
-            }
 
             Ok(res.map_err(|_| dsp::Error::LLMError))
         }
