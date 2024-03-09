@@ -23,7 +23,7 @@
         rdt = rust-dev-tools.setup pkgs {
           name = "dsprs";
           rust = rust-dev-tools.version.fromToolchainFile ./rust-toolchain.toml;
-          dependencies = with pkgs; [ ];
+          dependencies = with pkgs; [ openssl ];
         };
       in {
         packages = {

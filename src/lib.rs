@@ -25,6 +25,12 @@ pub struct Context {
     pub llm: Arc<LLM>,
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Context {
     pub fn new() -> Context {
         Context {
@@ -34,6 +40,7 @@ impl Context {
     }
 }
 
+#[derive(Debug)]
 pub enum LLM {
     OpenAI,
 }
@@ -41,7 +48,25 @@ pub enum LLM {
 pub struct LLMOptions;
 
 impl LLM {
-    pub fn gpt_4_turbo(options: LLMOptions) -> LLM {
+    pub fn gpt_4_turbo(_options: LLMOptions) -> LLM {
         todo!()
     }
+}
+
+#[macro_export]
+macro_rules! chain {
+    ( $( $module:ident $( ( $( $arg:expr ),* ) )? -> )* ) => {
+        {
+            $(
+                let _ = $module::new( $( $( $arg ),* )? );
+            )*
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! request {
+    ($context:expr, $module:ident) => {{
+        todo!()
+    }};
 }

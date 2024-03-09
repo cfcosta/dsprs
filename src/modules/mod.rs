@@ -12,12 +12,12 @@ pub struct Prediction<S: Signature> {
 
 pub struct Predict;
 
-pub fn predict<S: Signature>(signature: S) -> Prediction<S> {
+pub fn predict<S: Signature>(_signature: S) -> Prediction<S> {
     todo!()
 }
 
 pub struct ChainOfThought;
 
-pub fn chain_of_thought<S: Signature>(signature: S) -> Prediction<S> {
+pub fn chain_of_thought<S: Signature>(_signature: S) -> Prediction<S> {
     todo!()
 }

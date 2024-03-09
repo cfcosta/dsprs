@@ -1,7 +1,5 @@
 use dsp::*;
 
-use async_trait::async_trait;
-
 #[derive(Signature)]
 #[signature("Given an input question, answer it to the best of your habilities.")]
 pub struct AnswerQuestion {
@@ -26,7 +24,7 @@ pub struct SummarizeAnswer {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     let qa = chain!(AnswerQuestion -> SummarizeAnswer);
     let context = Context::new();
     let question = "What is the meaning of life?".to_string();
@@ -34,4 +32,6 @@ async fn main() {
     let result = request!(&context, qa).await?;
 
     println!("Answer: {}", result.answer);
+
+    Ok(())
 }
