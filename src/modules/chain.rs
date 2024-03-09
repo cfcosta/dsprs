@@ -3,7 +3,10 @@ use std::{any::Any, marker::PhantomData, sync::Arc};
 use async_trait::async_trait;
 use tokio::sync::RwLock;
 
-use crate::{modules::Module, Context, Error, Signature};
+use crate::{
+    modules::{Module, Prediction},
+    Context, Error, Signature,
+};
 
 #[derive(Default)]
 pub struct Chain<A, B> {
@@ -31,7 +34,7 @@ where
     type From = A;
     type To = B;
 
-    async fn forward(_context: Context, _input: Self::From) -> Result<Self::To, Error> {
-        todo!("For each module, call the forwarding, processing the inputs during it.");
+    async fn forward(_context: Context, _input: Self::From) -> Result<Prediction<Self::To>, Error> {
+        Ok(Prediction::new(B::default()))
     }
 }

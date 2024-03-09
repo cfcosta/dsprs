@@ -1,6 +1,6 @@
 use dsp::*;
 
-#[derive(Signature)]
+#[derive(Signature, Default)]
 #[signature("Given an input question, answer it to the best of your habilities.")]
 pub struct AnswerQuestion {
     #[input("A question")]
@@ -10,7 +10,7 @@ pub struct AnswerQuestion {
     pub answer: String,
 }
 
-#[derive(Signature)]
+#[derive(Signature, Default)]
 #[signature("Given an input question, answer it to the best of your habilities.")]
 pub struct SummarizeAnswer {
     #[input("An question")]
@@ -27,7 +27,7 @@ pub struct SummarizeAnswer {
 async fn main() -> Result<(), Error> {
     chain!(AnswerQuestion -> SummarizeAnswer);
     let _context = Context::new();
-    let result = request!(&context, qa, { question => "baby don't hurt me" }).await?;
+    let result = request!(qa, { question => "baby don't hurt me" }).await?;
 
     println!("{:?}", result);
 
