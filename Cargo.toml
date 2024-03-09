@@ -1,6 +1,12 @@
+workspace = { members = ["dsp_macros"] }
 [package]
-name = "dsprs"
+name = "dsp"
 version = "0.0.1"
 edition = "2021"
 
 [dependencies]
+async-openai = "0.19.0"
+async-trait = "0.1.77"
+thiserror = "1.0.57"
+tokio = { version = "1.36.0", features = ["full"] }
+dsp_macros = { path = "./dsp_macros" }
