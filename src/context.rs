@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::llm::{LanguageModel, Ollama};
+use crate::{llm::LanguageModel, OpenAI};
 
 #[derive(Debug, Clone)]
 pub struct Context {
@@ -21,7 +21,7 @@ impl Context {
     pub fn new() -> Context {
         Context {
             depth: 0,
-            llm: Arc::new(Ollama::new("gemma:7b")),
+            llm: Arc::new(OpenAI::new("gpt-3.5-turbo")),
         }
     }
 }

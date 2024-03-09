@@ -5,7 +5,7 @@ mod error;
 mod llm;
 mod modules;
 
-pub use self::{context::Context, error::Error, modules::*};
+pub use self::{context::Context, error::Error, llm::*, modules::*};
 
 pub trait Signature
 where

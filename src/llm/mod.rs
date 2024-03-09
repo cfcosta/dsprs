@@ -5,7 +5,11 @@ use async_trait::async_trait;
 use crate::Error;
 
 mod ollama;
-pub use ollama::Ollama;
+mod openai;
+pub use self::{
+    ollama::Ollama,
+    openai::{AzureOpenAI, OpenAI},
+};
 
 #[derive(Debug)]
 pub struct Completion;
