@@ -1,3 +1,6 @@
+use lazy_static::lazy_static;
+use tera::Tera;
+
 pub use dsp_macros::Signature;
 
 mod context;
@@ -11,8 +14,23 @@ pub trait Signature
 where
     Self: Default,
 {
-    type Inputs;
-    type Outputs;
+    fn struct_doc() -> &'static str;
+    fn field_docs() -> std::collections::HashMap<&'static str, &'static str>;
+}
+
+lazy_static! {
+    pub static ref TEMPLATES: Tera = {
+        let mut tera = Tera::default();
+
+        tera.add_raw_template(
+            "default_prompt",
+            include_str!("templates/default_prompt.jinja2"),
+        )
+        .expect("Failed to compile template");
+
+        tera.autoescape_on(vec!["html", ".sql"]);
+        tera
+    };
 }
 
 #[macro_export]
@@ -44,18 +62,18 @@ macro_rules! request {
             let context = ::dsp::Context::new();
             let mut params = ::dsp::params!($($key => $value)*);
 
-            let schema = params
-                .iter()
-                .map(|(k, _)| format!("<{k}>A value.</{k}>", k=k))
-                .collect::<Vec<String>>().join("\n");
-            let preprompt = format!("Please provide the result in the following format:\n{}", schema);
 
-            let prompt = params
-                .iter()
-                .map(|(k, v)| format!("<{k}>{v}</{k}>", k=k, v=v))
-                .collect::<Vec<String>>().join("\n");
+            let mut render_context = ::tera::Context::new();
 
-            let result = context.llm.complete(&[preprompt, prompt].join("\n\n")).await?;
+            render_context.insert("prompt", "this is the prompt");
+            render_context.insert("json_response_schema", "this is the expected json schema");
+
+            for (k, v) in params.iter() {
+                render_context.insert(k.to_string(), v);
+            }
+
+            let prompt = $crate::TEMPLATES.render("default_prompt", &render_context).unwrap();
+            let result = context.llm.complete(&prompt).await?;
             dbg!(&result);
 
             Ok(result)

@@ -1,7 +1,7 @@
 use crate::*;
 use async_openai::{
     config::{AzureConfig, Config, OpenAIConfig},
-    types::{CreateChatCompletionRequest, CreateCompletionRequestArgs},
+    types::CreateChatCompletionRequest,
     Client,
 };
 use async_trait::async_trait;
@@ -31,6 +31,8 @@ impl<C: Config> OpenAIInner<C> {
 #[async_trait]
 impl<C: Config + Debug + Send + Sync> LanguageModel for OpenAIInner<C> {
     async fn complete(&self, prompt: &str) -> Result<Completion, Error> {
+        println!("{}", prompt);
+
         let request = CreateChatCompletionRequest {
             model: self.model.clone(),
             messages: vec![],
