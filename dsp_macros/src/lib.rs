@@ -1,5 +1,6 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{parse_macro_input, Attribute, Data, DeriveInput, Fields, Lit, Meta};
 
@@ -8,27 +9,8 @@ pub fn signature_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let name = input.ident;
-    let (struct_doc, field_docs) = extract_docs(&input.attrs, &input.data);
-
-    let expanded = quote! {
-        impl Signature for #name {
-            fn struct_doc() -> &'static str {
-                #struct_doc
-            }
-
-            fn field_docs() -> std::collections::HashMap<&'static str, &'static str> {
-                let mut docs = std::collections::HashMap::new();
-                #(#field_docs)*
-                docs
-            }
-        }
-    };
-
-    TokenStream::from(expanded)
-}
-
-fn extract_docs(attrs: &[Attribute], data: &Data) -> (String, Vec<proc_macro2::TokenStream>) {
-    let struct_doc = attrs
+    let instructions = input
+        .attrs
         .iter()
         .find_map(|attr| {
             if attr.path.is_ident("doc") {
@@ -48,44 +30,85 @@ fn extract_docs(attrs: &[Attribute], data: &Data) -> (String, Vec<proc_macro2::T
         })
         .unwrap_or_default();
 
-    let field_docs = if let Data::Struct(data) = data {
-        if let Fields::Named(fields) = &data.fields {
+    let fields = if let Data::Struct(data) = input.data {
+        if let Fields::Named(fields) = data.fields {
             fields
                 .named
-                .iter()
-                .map(|field| {
-                    let name = &field.ident;
-                    let doc = field
-                        .attrs
-                        .iter()
-                        .find_map(|attr| {
-                            if attr.path.is_ident("doc") {
-                                match attr.parse_meta() {
-                                    Ok(Meta::NameValue(meta)) => {
-                                        if let Lit::Str(lit) = meta.lit {
-                                            Some(lit.value())
-                                        } else {
-                                            None
-                                        }
+                .into_iter()
+                .filter_map(|field| {
+                    let doc = field.attrs.iter().find_map(|attr| {
+                        if attr.path.is_ident("doc") {
+                            match attr.parse_meta() {
+                                Ok(Meta::NameValue(meta)) => {
+                                    if let lit @ Lit::Str(_) = meta.lit {
+                                        Some(lit)
+                                    } else {
+                                        None
                                     }
-                                    _ => None,
                                 }
-                            } else {
-                                None
+                                _ => None,
                             }
-                        })
-                        .unwrap_or_default();
+                        } else {
+                            None
+                        }
+                    });
+                    let direction = field.attrs.iter().find_map(|attr| {
+                        if attr.path.is_ident("port") {
+                            match attr.parse_meta() {
+                                Ok(Meta::Path(path)) if path.is_ident("input") => {
+                                    Some(quote! {::dsp::Direction::Input})
+                                }
+                                Ok(Meta::Path(path)) if path.is_ident("output") => {
+                                    Some(quote! {::dsp::Direction::Outnput})
+                                }
+                                _ => None,
+                            }
+                        } else {
+                            None
+                        }
+                    });
+
+                    field.ident.zip(doc).zip(direction)
+                })
+                .map(|((name, doc), direction)| {
                     quote! {
-                        docs.insert(stringify!(#name), #doc);
+                        fields.push(Ref {
+                            direction: #direction,
+                            kind: stringify!(#name),
+                            field: stringify!(#name),
+                            description: #doc
+                        })
                     }
                 })
                 .collect()
         } else {
-            Vec::new()
+            vec![]
         }
     } else {
-        Vec::new()
+        vec![]
     };
 
-    (struct_doc, field_docs)
+    let expanded = quote! {
+        impl Signature for #name {
+            fn instructions() -> &'static str {
+                #instructions
+            }
+
+            fn fields() -> Vec<::dsp::Ref> {
+                let mut fields = vec![];
+                #(#fields)*
+                fields
+            }
+
+            fn inputs() -> Vec<::dsp::Ref> {
+                Self::fields().into_iter().filter(|f| f.direction == ::dsp::Direction::Input).collect()
+            }
+
+            fn outputs() -> Vec<::dsp::Ref> {
+                Self::fields().into_iter().filter(|f| f.direction == ::dsp::Direction::Output).collect()
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
 }

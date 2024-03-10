@@ -32,9 +32,12 @@ pub struct SummarizeAnswer {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    chain!(AnswerQuestion -> SummarizeAnswer);
+    let chain = chain!(
+        AnswerQuestion.answer -> SummarizeAnswer.answer,
+    );
+
     let _context = Context::new();
-    let result = request!(qa, { question => "baby don't hurt me" }).await?;
+    let result = request!(chain, { question => "baby don't hurt me" }).await?;
 
     println!("{:?}", result);
 

@@ -10,12 +10,28 @@ mod modules;
 
 pub use self::{context::Context, error::Error, llm::*, modules::*};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Direction {
+    Input,
+    Output,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Ref {
+    pub direction: Direction,
+    pub kind: &'static str,
+    pub field: &'static str,
+    pub description: Option<&'static str>,
+}
+
 pub trait Signature
 where
     Self: Default,
 {
-    fn struct_doc() -> &'static str;
-    fn field_docs() -> std::collections::HashMap<&'static str, &'static str>;
+    fn instructions() -> &'static str;
+    fn fields() -> Vec<Ref>;
+    fn inputs() -> Vec<Ref>;
+    fn outputs() -> Vec<Ref>;
 }
 
 lazy_static! {
@@ -35,10 +51,27 @@ lazy_static! {
 
 #[macro_export]
 macro_rules! chain {
-    ( $( $from:ident -> $to:ident ),* $(,)?) => {{
-        println!("Creating chain from {} to {}", stringify!($($from)*), stringify!($($to)*));
+    ($($start:ident.$start_output:ident -> $end:ident.$end_input:ident),+ $(,)?) => {{
+        let mut chain = ::dsp::ChainBuilder::new();
 
-        let mut chain = ::dsp::Chain::<$($from)*, $($to)*>::new();
+        $(
+            let from = ::dsp::Ref {
+                direction: ::dsp::Direction::Input,
+                kind: stringify!($start),
+                field: stringify!($start_output),
+                description: Some(<$start>::instructions())
+            };
+
+
+            let to = ::dsp::Ref {
+                direction: ::dsp::Direction::Output,
+                kind: stringify!($end),
+                field: stringify!($end_input),
+                description: Some(<$end>::instructions())
+            };
+
+            chain.add_link::<$start, $end>(from, to);
+        )+
 
         chain
     }};

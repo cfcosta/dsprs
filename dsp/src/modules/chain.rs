@@ -1,40 +1,33 @@
-use std::{any::Any, marker::PhantomData, sync::Arc};
-
-use async_trait::async_trait;
-use tokio::sync::RwLock;
-
-use crate::{
-    modules::{Module, Prediction},
-    Context, Error, Signature,
-};
+use crate::{Ref, Signature};
 
 #[derive(Default)]
-pub struct Chain<A, B> {
-    pub modules: Vec<Arc<RwLock<dyn Any>>>,
-    _a: PhantomData<A>,
-    _b: PhantomData<B>,
+pub struct ChainBuilder {
+    inputs: Vec<Ref>,
+    outputs: Vec<Ref>,
 }
 
-impl<A, B> Chain<A, B> {
+impl ChainBuilder {
     pub fn new() -> Self {
         Self {
-            modules: vec![],
-            _a: PhantomData,
-            _b: PhantomData,
+            inputs: vec![],
+            outputs: vec![],
         }
     }
-}
 
-#[async_trait]
-impl<A, B> Module for Chain<A, B>
-where
-    A: Signature + Send + Sync,
-    B: Signature + Send + Sync,
-{
-    type From = A;
-    type To = B;
+    pub fn add_link<A: Signature, B: Signature>(&mut self, _from: Ref, _to: Ref) -> &mut Self {
+        let a_inputs = A::inputs();
+        let a_outputs = A::outputs();
+        let b_inputs = B::inputs();
+        let b_outputs = B::outputs();
 
-    async fn forward(_context: Context, _input: Self::From) -> Result<Prediction<Self::To>, Error> {
-        Ok(Prediction::new(B::default()))
+        if self.inputs.is_empty() {
+            self.inputs = a_inputs
+        }
+
+        if self.outputs.is_empty() {
+            self.outputs = b_outputs
+        }
+
+        self
     }
 }

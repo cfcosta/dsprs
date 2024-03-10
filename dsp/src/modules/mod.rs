@@ -7,7 +7,7 @@ mod chain_of_thought;
 mod predict;
 
 pub use self::{
-    chain::Chain,
+    chain::*,
     chain_of_thought::{chain_of_thought, ChainOfThought},
     predict::{predict, Predict},
 };

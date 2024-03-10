@@ -14,7 +14,7 @@ tera = "1.19.1"
 serde = { version = "1.0.197", features = ["derive"] }
 reqwest = "0.11.25"
 lazy_static = "1.4.0"
-schemars = "0.8.16"
+schemars = { version = "0.8.16", features = ["preserve_order"] }
 
 [[example]]
 name = "basic"
