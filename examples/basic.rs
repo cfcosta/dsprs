@@ -30,16 +30,21 @@ pub struct SummarizeAnswer {
     pub summary: String,
 }
 
+#[derive(Component)]
+pub struct QA {
+    #[chain(input)]
+    question: String,
+
+    #[chain(AnswerQuestion.answer -> _.answer)]
+    answer: String,
+
+    #[chain(AnswerQuestion.summary -> _.summary)]
+    summary: String,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let chain = chain!(
-        AnswerQuestion.answer -> SummarizeAnswer.answer,
-    );
-
-    let _context = Context::new();
-    let result = request!(chain, { question => "baby don't hurt me" }).await?;
-
-    println!("{:?}", result);
+    let result = request!(QA, { question => "baby don't hurt me" }).await?;
 
     Ok(())
 }

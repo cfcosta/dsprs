@@ -1,5 +1,17 @@
 use crate::{Ref, Signature};
 
+#[derive(Component)]
+pub struct Chain {
+    #[chain(input)]
+    question: String,
+
+    #[chain(AnswerQuestion.answer -> _.answer)]
+    answer: String,
+
+    #[chain(AnswerQuestion.summary -> _.summary)]
+    summary: String,
+}
+
 #[derive(Default)]
 pub struct ChainBuilder {
     inputs: Vec<Ref>,
